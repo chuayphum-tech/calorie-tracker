@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calorie Tracker</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:#fff; color:#111; margin:0; padding:12px;
+    }
+    .header { position:sticky; top:0; background:#fff; padding:10px 0; }
+    .card { border:1px solid #e5e7eb; border-radius:10px; padding:10px; margin-bottom:10px; }
+    .title { font-size:18px; font-weight:700; text-align:center; }
+    .kcal { font-size:24px; font-weight:800; text-align:center; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    button {
+      padding:12px; border-radius:10px; border:1px solid #e5e7eb;
+      background:#fff; font-size:15px;
+    }
+    button:active { background:#f3f4f6; }
+    .footer { position:sticky; bottom:0; background:#fff; padding:10px 0; }
+    .primary { background:#111; color:#fff; border-color:#111; width:100%; }
+    .muted { color:#6b7280; font-size:13px; text-align:center; margin-top:4px; }
+  </style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="card">
+    <div class="title">🔥 Today Calories</div>
+    <div class="kcal">
+      <span id="total">0</span> / 1800 kcal
+    </div>
+    <div class="muted" id="warn"></div>
+    <div class="muted">
+      🥩 Protein: <span id="pro">0</span> g |
+      🍞 Carbs: <span id="carb">0</span> g
+    </div>
+  </div>
+</div>
+
+<div class="card title">🍱 7-Eleven (Low-carb)</div>
+<div class="grid" id="foods"></div>
+
+<div class="footer">
+  <button class="primary" onclick="saveDay()">Save Day / สรุปวัน</button>
+</div>
+
+<script>
+const DAILY_LIMIT = 1800;
+
+const foods = [
+ {name:"ไข่ต้ม 2 ฟอง", kcal:140, protein:12, carb:2},
+ {name:"อกไก่นุ่ม", kcal:110, protein:23, carb:1},
+ {name:"อกไก่ย่าง", kcal:120, protein:22, carb:1},
+ {name:"ทูน่า (น้ำแร่)", kcal:120, protein:20, carb:0},
+ {name:"ไส้กรอกไก่", kcal:150, protein:10, carb:2},
+ {name:"หมูยอไม่แป้ง", kcal:160, protein:9, carb:1},
+ {name:"ชีสแท่ง", kcal:80, protein:5, carb:1},
+ {name:"โยเกิร์ตไม่หวาน", kcal:120, protein:6, carb:6},
+ {name:"นมจืด", kcal:150, protein:8, carb:12},
+ {name:"สลัดผัก", kcal:40, protein:2, carb:5},
+ {name:"สาหร่ายอบ", kcal:30, protein:1, carb:2},
+ {name:"อัลมอนด์", kcal:160, protein:6, carb:4},
+ {name:"ไข่ต้มเดี่ยว", kcal:70, protein:6, carb:1},
+ {name:"ปลาแพ็ก", kcal:120, protein:20, carb:0},
+ {name:"เต้าหู้หลอด", kcal:90, protein:7, carb:3},
+ {name:"กาแฟดำ/ชา", kcal:0, protein:0, carb:0},
+];
+
+let totalKcal = 0;
+let totalProtein = 0;
+let totalCarb = 0;
+
+const container = document.getElementById("foods");
+
+foods.forEach(f=>{
+  const btn = document.createElement("button");
+  btn.textContent = `${f.name} (+${f.kcal} kcal)`;
+  btn.onclick = ()=>{
+    totalKcal += f.kcal;
+    totalProtein += f.protein;
+    totalCarb += f.carb;
+
+    const totalEl = document.getElementById("total");
+    const warnEl = document.getElementById("warn");
+
+    totalEl.textContent = totalKcal;
+    document.getElementById("pro").textContent = totalProtein;
+    document.getElementById("carb").textContent = totalCarb;
+
+    if(totalKcal >= 1800){
+      totalEl.style.color = "red";
+      warnEl.textContent = "⚠️ เกิน 1,800 kcal แล้ว";
+    } else if(totalKcal >= 1500){
+      totalEl.style.color = "orange";
+      warnEl.textContent = "ใกล้ถึง 1,800 kcal";
+    } else {
+      totalEl.style.color = "#111";
+      warnEl.textContent = "";
+    }
+  };
+  container.appendChild(btn);
+});
+
+function saveDay(){
+  const date = new Date().toISOString().slice(0,10);
+
+  const formBase =
+    "https://docs.google.com/forms/d/e/1FAIpQLSec0W7a_mpp7vKHpDP8DawhesKR7uMtGtJBXZroftbxEyNqhw/viewform?usp=pp_url&entry.1079360554=DATE&entry.1005976622=CAL&entry.2124434470=PRO&entry.191566154=CARB";
+
+  const url =
+    formBase
+      .replace("DATE", encodeURIComponent(date))
+      .replace("CAL", encodeURIComponent(totalKcal))
+      .replace("PRO", encodeURIComponent(totalProtein))
+      .replace("CARB", encodeURIComponent(totalCarb));
+
+  window.open(url, "_blank");
+
+  totalKcal = 0;
+  totalProtein = 0;
+  totalCarb = 0;
+
+  document.getElementById("total").textContent = "0";
+  document.getElementById("pro").textContent = "0";
+  document.getElementById("carb").textContent = "0";
+  document.getElementById("warn").textContent = "";
+  document.getElementById("total").style.color = "#111";
+}
+</script>
+
+</body>
+</html>
