@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เบิกวัตถุดิบ</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+    }
+    h1 { text-align: center; }
+    .box {
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .add { background: #1976d2; color: #fff; }
+    .confirm { background: #2e7d32; color: #fff; }
+  </style>
+</head>
+
+<body>
+
+<h1>📦 เบิกวัตถุดิบ</h1>
+
+<div class="box">
+  <label>วันที่</label>
+  <input type="date" id="issueDate" />
+
+  <label>เครื่องจักร</label>
+  <input type="text" id="machine" placeholder="machine_A@factory.local" />
+
+  <label>ผู้เบิก</label>
+  <input type="text" id="operator" placeholder="ชื่อผู้เบิก" />
+</div>
+
+<div class="box">
+  <h3>รายการวัตถุดิบ</h3>
+
+  <label>วัตถุดิบ</label>
+  <input type="text" id="item" placeholder="ชื่อวัตถุดิบ" />
+
+  <label>จำนวน</label>
+  <input type="number" id="qty" min="1" />
+
+  <label>หน่วย</label>
+  <input type="text" id="unit" placeholder="หน่วย" />
+
+  <button class="add" onclick="addItem()">➕ เพิ่มรายการ</button>
+</div>
+
+<div class="box">
+  <h3>รายการที่เลือก</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>วัตถุดิบ</th>
+        <th>จำนวน</th>
+        <th>หน่วย</th>
+      </tr>
+    </thead>
+    <tbody id="itemTable"></tbody>
+  </table>
+</div>
+
+<button class="confirm" onclick="confirmIssue()">✅ ยืนยันใบเบิก</button>
+
+<script>
+  const items = [];
+
+  function addItem() {
+    const item = document.getElementById('item').value;
+    const qty = document.getElementById('qty').value;
+    const unit = document.getElementById('unit').value;
+
+    if (!item || !qty || !unit) {
+      alert('กรุณากรอกข้อมูลรายการให้ครบ');
+      return;
+    }
+
+    items.push({ item, qty, unit });
+    renderTable();
+
+    document.getElementById('item').value = '';
+    document.getElementById('qty').value = '';
+    document.getElementById('unit').value = '';
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('itemTable');
+    tbody.innerHTML = '';
+    items.forEach((row) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row.item}</td>
+        <td>${row.qty}</td>
+        <td>${row.unit}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function confirmIssue() {
+    if (items.length === 0) {
+      alert('ยังไม่มีรายการวัตถุดิบ');
+      return;
+    }
+    alert('STEP ถัดไป: ส่งข้อมูลเข้า Google Form');
+  }
+</script>
+
+</body>
+</html>
