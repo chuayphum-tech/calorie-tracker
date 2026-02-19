@@ -1,147 +1,272 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>เบิกวัตถุดิบ</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f5f5f5;
-      padding: 16px;
-    }
-    h1 { text-align: center; }
-    .box {
-      background: #fff;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-    label {
-      display: block;
-      margin-top: 8px;
-      font-size: 14px;
-    }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      font-size: 14px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 6px;
-      text-align: center;
-      font-size: 14px;
-    }
-    button {
-      padding: 10px;
-      width: 100%;
-      margin-top: 10px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .add { background: #1976d2; color: #fff; }
-    .confirm { background: #2e7d32; color: #fff; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ใบเบิกวัตถุดิบ</title>
+
+<style>
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:"Prompt",system-ui,sans-serif;
+  background-image:url("bg-warehouse.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:-1;
+}
+.container{
+  max-width:520px;
+  margin:24px auto;
+  background:#fff;
+  border-radius:14px;
+  padding:16px;
+}
+h2{text-align:center;margin-bottom:12px;}
+label{font-size:13px;margin-top:10px;display:block;}
+input,select{
+  width:100%;
+  height:42px;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
+}
+button{
+  width:100%;
+  height:44px;
+  margin-top:12px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+.add{background:#1e88e5;color:#fff;}
+.confirm{background:#2e7d32;color:#fff;}
+.delete{background:#e53935;color:#fff;padding:6px 10px;border-radius:6px;}
+table{
+  width:100%;
+  margin-top:12px;
+  border-collapse:collapse;
+  font-size:14px;
+}
+th{background:#263238;color:#fff;padding:8px;}
+td{
+  background:#fafafa;
+  padding:8px;
+  border-bottom:1px solid #ddd;
+  word-break:break-word;
+}
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+.modal-content{
+  background:#fff;
+  width:90%;
+  max-width:480px;
+  border-radius:14px;
+  padding:16px;
+}
+</style>
 </head>
 
 <body>
 
-<h1>📦 เบิกวัตถุดิบ</h1>
+<div class="container">
+<h2>📦 ใบเบิกวัตถุดิบ</h2>
 
-<div class="box">
-  <label>วันที่</label>
-  <input type="date" id="issueDate" />
+<label>เครื่องจักร</label>
+<select id="machine">
+<option value="">-- เลือก --</option>
+<option>Machine-01</option>
+<option>Machine-02</option>
+</select>
 
-  <label>เครื่องจักร</label>
-  <input type="text" id="machine" placeholder="machine_A@factory.local" />
+<label>วันที่เบิก</label>
+<input type="date" id="issueDate">
 
-  <label>ผู้เบิก</label>
-  <input type="text" id="operator" placeholder="ชื่อผู้เบิก" />
+<hr>
+
+<label>วัตถุดิบ</label>
+<select id="item">
+<option value="">กำลังโหลดข้อมูล...</option>
+</select>
+
+<label>จำนวน</label>
+<input type="number" id="qtyInput" min="1">
+
+<button class="add" onclick="addItem()">➕ เพิ่มรายการ</button>
+
+<table>
+<thead>
+<tr><th>วัตถุดิบ</th><th width="90">จำนวน</th><th width="60">ลบ</th></tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+<button class="confirm" onclick="openReview()">🔍 ตรวจสอบก่อนยืนยัน</button>
 </div>
 
-<div class="box">
-  <h3>รายการวัตถุดิบ</h3>
-
-  <label>วัตถุดิบ</label>
-  <input type="text" id="item" placeholder="ชื่อวัตถุดิบ" />
-
-  <label>จำนวน</label>
-  <input type="number" id="qty" min="1" />
-
-  <label>หน่วย</label>
-  <input type="text" id="unit" placeholder="หน่วย" />
-
-  <button class="add" onclick="addItem()">➕ เพิ่มรายการ</button>
+<div class="modal" id="modal">
+<div class="modal-content">
+<h3>ตรวจสอบข้อมูล</h3>
+<div id="review"></div>
+<button class="confirm" onclick="submit()">✅ ยืนยันใบเบิก</button>
+<button onclick="closeModal()">↩ กลับไปแก้ไข</button>
 </div>
-
-<div class="box">
-  <h3>รายการที่เลือก</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>วัตถุดิบ</th>
-        <th>จำนวน</th>
-        <th>หน่วย</th>
-      </tr>
-    </thead>
-    <tbody id="itemTable"></tbody>
-  </table>
 </div>
-
-<button class="confirm" onclick="confirmIssue()">✅ ยืนยันใบเบิก</button>
 
 <script>
-  const items = [];
 
-  function addItem() {
-    const item = document.getElementById('item').value;
-    const qty = document.getElementById('qty').value;
-    const unit = document.getElementById('unit').value;
+// ===== CONFIG =====
+const SHEET_ID="1jVYjQcsO1SLd6PoocZpA-YXyJdXZk0Rt8nNrc33vtns";
+const GID="1313375061";
+const FORM_URL="https://docs.google.com/forms/d/e/1FAIpQLSc6KrMRfJqgoV3eYqG0IhMA01B6cyXa-s-GDFNC1MQ9JhmApw/formResponse";
 
-    if (!item || !qty || !unit) {
-      alert('กรุณากรอกข้อมูลรายการให้ครบ');
-      return;
-    }
+let items=[];
 
-    items.push({ item, qty, unit });
-    renderTable();
+// ===== LOAD ITEMS =====
+async function loadItems(){
+try{
+const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+const res=await fetch(url);
+const text=await res.text();
+const json=JSON.parse(text.substring(47).slice(0,-2));
 
-    document.getElementById('item').value = '';
-    document.getElementById('qty').value = '';
-    document.getElementById('unit').value = '';
-  }
+const rows=json.table.rows;
+const select=document.getElementById("item");
+select.innerHTML='<option value="">-- เลือก --</option>';
 
-  function renderTable() {
-    const tbody = document.getElementById('itemTable');
-    tbody.innerHTML = '';
-    items.forEach((row) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${row.item}</td>
-        <td>${row.qty}</td>
-        <td>${row.unit}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
+rows.forEach(r=>{
+const category=r.c[0]?.v;
+const code=r.c[1]?.v;
+const name=r.c[2]?.v;
+const unit=r.c[3]?.v;
+const status=r.c[4]?.v;
 
-  function confirmIssue() {
-    if (items.length === 0) {
-      alert('ยังไม่มีรายการวัตถุดิบ');
-      return;
-    }
-    alert('STEP ถัดไป: ส่งข้อมูลเข้า Google Form');
-  }
+if(status==="Active"){
+select.innerHTML+=`
+<option value="${name}"
+data-code="${code}"
+data-unit="${unit}"
+data-cat="${category}">
+${name}
+</option>`;
+}
+});
+}catch(e){
+document.getElementById("item").innerHTML=
+'<option value="">โหลดข้อมูลไม่ได้</option>';
+console.error(e);
+}
+}
+loadItems();
+
+// ===== DATE RULE =====
+(function(){
+const today=new Date();
+const tomorrow=new Date();
+tomorrow.setDate(today.getDate()+1);
+const dateInput=document.getElementById("issueDate");
+dateInput.min=today.toISOString().split("T")[0];
+dateInput.max=tomorrow.toISOString().split("T")[0];
+})();
+
+// ===== ADD ITEM =====
+function addItem(){
+const select=document.getElementById("item");
+const qtyInput=document.getElementById("qtyInput");
+const quantity=parseInt(qtyInput.value);
+
+if(!select.value||!quantity)return alert("ข้อมูลไม่ครบ");
+
+const code=select.selectedOptions[0].dataset.code;
+const unit=select.selectedOptions[0].dataset.unit;
+
+const exist=items.find(i=>i.code===code);
+if(exist){
+exist.qty+=quantity;
+}else{
+items.push({
+code,
+name:select.value,
+unit,
+qty:quantity
+});
+}
+render();
+qtyInput.value="";
+}
+
+// ===== RENDER TABLE =====
+function render(){
+const tbody=document.getElementById("list");
+tbody.innerHTML="";
+items.forEach((i,index)=>{
+tbody.innerHTML+=`
+<tr>
+<td>${i.name}</td>
+<td>${i.qty} ${i.unit}</td>
+<td><button class="delete" onclick="removeItem(${index})">ลบ</button></td>
+</tr>`;
+});
+}
+
+function removeItem(index){
+items.splice(index,1);
+render();
+}
+
+// ===== REVIEW =====
+function openReview(){
+if(items.length===0)return alert("ไม่มีรายการ");
+if(!machine.value)return alert("กรุณาเลือกเครื่องจักร");
+if(!issueDate.value)return alert("กรุณาเลือกวันที่");
+
+const review=document.getElementById("review");
+review.innerHTML=`
+<p><b>เครื่องจักร:</b> ${machine.value}</p>
+<p><b>วันที่:</b> ${issueDate.value}</p><hr>
+`;
+
+items.forEach((i,index)=>{
+review.innerHTML+=`
+<p>${index+1}) ${i.name} — ${i.qty} ${i.unit}</p>`;
+});
+modal.style.display="flex";
+}
+
+function closeModal(){
+modal.style.display="none";
+}
+
+// ===== SUBMIT =====
+function submit(){
+const issueID="ISS-"+Date.now();
+const fd=new FormData();
+fd.append("entry.433160390",issueID);
+fd.append("entry.2142953662",machine.value);
+fd.append("entry.1674395658",issueDate.value);
+fd.append("entry.1740216135",JSON.stringify(items));
+
+fetch(FORM_URL,{method:"POST",mode:"no-cors",body:fd});
+alert("บันทึกเรียบร้อย\nเลขที่: "+issueID);
+location.reload();
+}
+
 </script>
-
 </body>
 </html>
