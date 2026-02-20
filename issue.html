@@ -3,68 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ใบเบิกวัตถุดิบ</title>
+<title>Raw Material Issue</title>
 
 <style>
 *{box-sizing:border-box;}
 body{
   margin:0;
-  font-family:"Prompt",system-ui,sans-serif;
-  background-image:url("bg-warehouse.jpg");
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  background-attachment:fixed;
+  font-family:system-ui;
+  background:url("bg-warehouse.jpg") center/cover no-repeat fixed;
 }
 body::before{
   content:"";
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.55);
+  background:rgba(0,0,0,.65);
   z-index:-1;
 }
 .container{
-  max-width:520px;
-  margin:24px auto;
+  max-width:720px;
+  margin:30px auto;
   background:#fff;
-  border-radius:14px;
-  padding:16px;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
 }
-h2{text-align:center;margin-bottom:12px;}
-label{font-size:13px;margin-top:10px;display:block;}
+h2{text-align:center;margin-bottom:16px;}
+label{font-weight:600;font-size:13px;margin-top:10px;display:block;}
 input,select{
   width:100%;
-  height:42px;
-  padding:8px 10px;
-  border-radius:8px;
+  height:40px;
   border:1px solid #ccc;
+  border-radius:8px;
+  padding:6px 10px;
   font-size:14px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
 button{
-  width:100%;
-  height:44px;
   margin-top:12px;
+  height:42px;
   border:none;
-  border-radius:10px;
-  font-weight:600;
+  border-radius:8px;
   cursor:pointer;
+  font-weight:600;
 }
-.add{background:#1e88e5;color:#fff;}
-.confirm{background:#2e7d32;color:#fff;}
-.delete{background:#e53935;color:#fff;padding:6px 10px;border-radius:6px;}
+.add{background:#1976d2;color:#fff;}
+.confirm{background:#2e7d32;color:#fff;width:100%;}
+.delete{background:#e53935;color:#fff;padding:4px 8px;border-radius:6px;}
+
 table{
   width:100%;
-  margin-top:12px;
   border-collapse:collapse;
-  font-size:14px;
+  margin-top:14px;
 }
-th{background:#263238;color:#fff;padding:8px;}
-td{
-  background:#fafafa;
-  padding:8px;
-  border-bottom:1px solid #ddd;
-  word-break:break-word;
+th{background:#263238;color:#fff;padding:8px;text-align:left;}
+td{padding:8px;border-bottom:1px solid #ddd;}
+.qty{text-align:right;font-weight:600;}
+
+.summary{
+  margin-top:12px;
+  padding:10px;
+  background:#f1f8e9;
+  border-radius:8px;
+  font-weight:600;
 }
+
 .modal{
   position:fixed;
   inset:0;
@@ -73,200 +79,224 @@ td{
   align-items:center;
   justify-content:center;
 }
-.modal-content{
+.modal-box{
   background:#fff;
-  width:90%;
-  max-width:480px;
+  padding:20px;
   border-radius:14px;
-  padding:16px;
+  width:95%;
+  max-width:760px;
 }
+.review-header{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:2px solid #eee;
+  padding-bottom:10px;
+  margin-bottom:14px;
+}
+.small{font-size:12px;color:#666;}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h2>📦 ใบเบิกวัตถุดิบ</h2>
+<h2>📦 ระบบใบเบิกวัตถุดิบ</h2>
 
+<div class="grid">
+<div>
 <label>เครื่องจักร</label>
 <select id="machine">
 <option value="">-- เลือก --</option>
 <option>Machine-01</option>
 <option>Machine-02</option>
 </select>
+</div>
 
-<label>วันที่เบิก</label>
+<div>
+<label>วันที่</label>
 <input type="date" id="issueDate">
+</div>
+</div>
 
-<hr>
-
-<label>วัตถุดิบ</label>
+<label>เลือกวัตถุดิบ</label>
 <select id="item">
-<option value="">กำลังโหลดข้อมูล...</option>
+<option>กำลังโหลดข้อมูล...</option>
 </select>
 
 <label>จำนวน</label>
-<input type="number" id="qtyInput" min="1">
+<input type="number" id="qty" min="1">
 
 <button class="add" onclick="addItem()">➕ เพิ่มรายการ</button>
 
 <table>
 <thead>
-<tr><th>วัตถุดิบ</th><th width="90">จำนวน</th><th width="60">ลบ</th></tr>
+<tr>
+<th>#</th>
+<th>Code</th>
+<th>รายการ</th>
+<th>Qty</th>
+<th>ลบ</th>
+</tr>
 </thead>
 <tbody id="list"></tbody>
 </table>
 
-<button class="confirm" onclick="openReview()">🔍 ตรวจสอบก่อนยืนยัน</button>
+<div class="summary" id="liveSummary"></div>
+
+<button class="confirm" onclick="openReview()">ตรวจสอบก่อนบันทึก</button>
 </div>
 
 <div class="modal" id="modal">
-<div class="modal-content">
-<h3>ตรวจสอบข้อมูล</h3>
-<div id="review"></div>
-<button class="confirm" onclick="submit()">✅ ยืนยันใบเบิก</button>
-<button onclick="closeModal()">↩ กลับไปแก้ไข</button>
+<div class="modal-box">
+
+<div class="review-header">
+<div>
+<b>📋 สรุปใบเบิก</b><br>
+<span id="revMachine"></span><br>
+<span id="revDate"></span>
+</div>
+<div>
+เลขที่: <b id="revID"></b><br>
+<span class="small" id="revTime"></span>
+</div>
+</div>
+
+<div id="reviewTable"></div>
+<div class="summary" id="revSummary"></div>
+
+<button class="confirm" onclick="submit()">ยืนยัน</button>
+<button onclick="closeModal()">กลับ</button>
+
 </div>
 </div>
 
 <script>
 
-// ===== CONFIG =====
 const SHEET_ID="1jVYjQcsO1SLd6PoocZpA-YXyJdXZk0Rt8nNrc33vtns";
 const GID="1313375061";
 const FORM_URL="https://docs.google.com/forms/d/e/1FAIpQLSc6KrMRfJqgoV3eYqG0IhMA01B6cyXa-s-GDFNC1MQ9JhmApw/formResponse";
 
 let items=[];
 
-// ===== LOAD ITEMS =====
+// ===== โหลดเฉพาะ Active และเฉพาะคอลัมน์ที่ต้องใช้ =====
 async function loadItems(){
-try{
-const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
-const res=await fetch(url);
-const text=await res.text();
-const json=JSON.parse(text.substring(47).slice(0,-2));
+const query = encodeURIComponent("SELECT B,C,D WHERE E='Active'");
+const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${GID}`;
 
-const rows=json.table.rows;
-const select=document.getElementById("item");
-select.innerHTML='<option value="">-- เลือก --</option>';
+try{
+const res = await fetch(url);
+const text = await res.text();
+const json = JSON.parse(text.substring(47).slice(0,-2));
+const rows = json.table.rows;
+
+item.innerHTML='<option value="">-- เลือก --</option>';
 
 rows.forEach(r=>{
-const category=r.c[0]?.v;
-const code=r.c[1]?.v;
-const name=r.c[2]?.v;
-const unit=r.c[3]?.v;
-const status=r.c[4]?.v;
+const code=r.c[0]?.v;
+const name=r.c[1]?.v;
+const unit=r.c[2]?.v;
 
-if(status==="Active"){
-select.innerHTML+=`
+item.innerHTML+=`
 <option value="${name}"
 data-code="${code}"
-data-unit="${unit}"
-data-cat="${category}">
-${name}
+data-unit="${unit}">
+${code} - ${name}
 </option>`;
-}
 });
+
 }catch(e){
-document.getElementById("item").innerHTML=
-'<option value="">โหลดข้อมูลไม่ได้</option>';
+item.innerHTML='<option value="">โหลดข้อมูลล้มเหลว</option>';
 console.error(e);
 }
 }
 loadItems();
 
-// ===== DATE RULE =====
-(function(){
-const today=new Date();
-const tomorrow=new Date();
-tomorrow.setDate(today.getDate()+1);
-const dateInput=document.getElementById("issueDate");
-dateInput.min=today.toISOString().split("T")[0];
-dateInput.max=tomorrow.toISOString().split("T")[0];
-})();
-
-// ===== ADD ITEM =====
 function addItem(){
-const select=document.getElementById("item");
-const qtyInput=document.getElementById("qtyInput");
-const quantity=parseInt(qtyInput.value);
+const sel=item;
+const quantity=parseInt(qty.value);
+if(!sel.value||!quantity)return alert("ข้อมูลไม่ครบ");
 
-if(!select.value||!quantity)return alert("ข้อมูลไม่ครบ");
-
-const code=select.selectedOptions[0].dataset.code;
-const unit=select.selectedOptions[0].dataset.unit;
+const code=sel.selectedOptions[0].dataset.code;
+const unit=sel.selectedOptions[0].dataset.unit;
 
 const exist=items.find(i=>i.code===code);
-if(exist){
-exist.qty+=quantity;
-}else{
-items.push({
-code,
-name:select.value,
-unit,
-qty:quantity
-});
-}
+if(exist){exist.qty+=quantity;}
+else{items.push({code,name:sel.value,unit,qty:quantity});}
+
 render();
-qtyInput.value="";
+qty.value="";
 }
 
-// ===== RENDER TABLE =====
 function render(){
-const tbody=document.getElementById("list");
-tbody.innerHTML="";
-items.forEach((i,index)=>{
-tbody.innerHTML+=`
+list.innerHTML="";
+let total=0;
+
+items.forEach((i,idx)=>{
+total+=i.qty;
+list.innerHTML+=`
 <tr>
+<td>${idx+1}</td>
+<td>${i.code}</td>
 <td>${i.name}</td>
-<td>${i.qty} ${i.unit}</td>
-<td><button class="delete" onclick="removeItem(${index})">ลบ</button></td>
+<td class="qty">${i.qty} ${i.unit}</td>
+<td><button class="delete" onclick="remove(${idx})">ลบ</button></td>
 </tr>`;
 });
+
+liveSummary.innerHTML=`รวม ${items.length} รายการ | จำนวนรวม ${total}`;
 }
 
-function removeItem(index){
-items.splice(index,1);
-render();
-}
+function remove(i){items.splice(i,1);render();}
 
-// ===== REVIEW =====
 function openReview(){
 if(items.length===0)return alert("ไม่มีรายการ");
-if(!machine.value)return alert("กรุณาเลือกเครื่องจักร");
-if(!issueDate.value)return alert("กรุณาเลือกวันที่");
+if(!machine.value)return alert("เลือกเครื่องจักร");
+if(!issueDate.value)return alert("เลือกวันที่");
 
-const review=document.getElementById("review");
-review.innerHTML=`
-<p><b>เครื่องจักร:</b> ${machine.value}</p>
-<p><b>วันที่:</b> ${issueDate.value}</p><hr>
-`;
+const id="ISS-"+Date.now();
 
-items.forEach((i,index)=>{
-review.innerHTML+=`
-<p>${index+1}) ${i.name} — ${i.qty} ${i.unit}</p>`;
+revID.innerText=id;
+revMachine.innerText="เครื่องจักร: "+machine.value;
+revDate.innerText="วันที่: "+issueDate.value;
+revTime.innerText="บันทึกเมื่อ: "+new Date().toLocaleString();
+
+let total=0;
+let html="<table><tr><th>#</th><th>Code</th><th>รายการ</th><th>Qty</th></tr>";
+
+items.forEach((i,idx)=>{
+total+=i.qty;
+html+=`
+<tr>
+<td>${idx+1}</td>
+<td>${i.code}</td>
+<td>${i.name}</td>
+<td class="qty">${i.qty} ${i.unit}</td>
+</tr>`;
 });
+
+html+="</table>";
+reviewTable.innerHTML=html;
+revSummary.innerHTML=`รวม ${items.length} รายการ | จำนวนรวม ${total}`;
+
 modal.style.display="flex";
 }
 
-function closeModal(){
-modal.style.display="none";
-}
+function closeModal(){modal.style.display="none";}
 
-// ===== SUBMIT =====
 function submit(){
-const issueID="ISS-"+Date.now();
+const id=revID.innerText;
 const fd=new FormData();
-fd.append("entry.433160390",issueID);
+fd.append("entry.433160390",id);
 fd.append("entry.2142953662",machine.value);
 fd.append("entry.1674395658",issueDate.value);
 fd.append("entry.1740216135",JSON.stringify(items));
 
 fetch(FORM_URL,{method:"POST",mode:"no-cors",body:fd});
-alert("บันทึกเรียบร้อย\nเลขที่: "+issueID);
+alert("บันทึกเรียบร้อย\nเลขที่: "+id);
 location.reload();
 }
 
 </script>
+
 </body>
 </html>
