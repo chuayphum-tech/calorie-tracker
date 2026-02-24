@@ -49,10 +49,19 @@ button{
   border-radius:8px;
   cursor:pointer;
   font-weight:600;
+  transition:.2s;
 }
+button:hover{opacity:.9;transform:translateY(-1px);}
 .add{background:#1976d2;color:#fff;}
 .confirm{background:#2e7d32;color:#fff;width:100%;}
 .delete{background:#e53935;color:#fff;padding:4px 8px;border-radius:6px;}
+
+.dashboard-btn{
+  width:100%;
+  margin-top:10px;
+  background:linear-gradient(45deg,#1e3c72,#2a5298);
+  color:#fff;
+}
 
 table{
   width:100%;
@@ -144,8 +153,15 @@ td{padding:8px;border-bottom:1px solid #ddd;}
 <div class="summary" id="liveSummary"></div>
 
 <button class="confirm" onclick="openReview()">ตรวจสอบก่อนบันทึก</button>
+
+<!-- 🔥 ปุ่ม Dashboard แบบโปร -->
+<button class="dashboard-btn" onclick="openDashboard()">
+📊 Summary Dashboard
+</button>
+
 </div>
 
+<!-- MODAL -->
 <div class="modal" id="modal">
 <div class="modal-box">
 
@@ -172,13 +188,18 @@ td{padding:8px;border-bottom:1px solid #ddd;}
 
 <script>
 
+const DASHBOARD_URL="https://script.google.com/macros/s/AKfycbxPmFk6DcQFxR8C_-2hwPGjJsELmjCyv-pCnYPz_3nfqbfduSts2iPg-urjZobu3poJlQ/exec?page=dashboard";
+
+function openDashboard(){
+  window.open(DASHBOARD_URL,"_blank");
+}
+
 const SHEET_ID="1jVYjQcsO1SLd6PoocZpA-YXyJdXZk0Rt8nNrc33vtns";
 const GID="1313375061";
 const FORM_URL="https://docs.google.com/forms/d/e/1FAIpQLSc6KrMRfJqgoV3eYqG0IhMA01B6cyXa-s-GDFNC1MQ9JhmApw/formResponse";
 
 let items=[];
 
-// ===== โหลดเฉพาะ Active และเฉพาะคอลัมน์ที่ต้องใช้ =====
 async function loadItems(){
 const query = encodeURIComponent("SELECT B,C,D WHERE E='Active'");
 const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${GID}`;
@@ -203,10 +224,8 @@ data-unit="${unit}">
 ${code} - ${name}
 </option>`;
 });
-
 }catch(e){
 item.innerHTML='<option value="">โหลดข้อมูลล้มเหลว</option>';
-console.error(e);
 }
 }
 loadItems();
@@ -242,7 +261,6 @@ list.innerHTML+=`
 <td><button class="delete" onclick="remove(${idx})">ลบ</button></td>
 </tr>`;
 });
-
 liveSummary.innerHTML=`รวม ${items.length} รายการ | จำนวนรวม ${total}`;
 }
 
@@ -254,7 +272,6 @@ if(!machine.value)return alert("เลือกเครื่องจักร
 if(!issueDate.value)return alert("เลือกวันที่");
 
 const id="ISS-"+Date.now();
-
 revID.innerText=id;
 revMachine.innerText="เครื่องจักร: "+machine.value;
 revDate.innerText="วันที่: "+issueDate.value;
@@ -277,7 +294,6 @@ html+=`
 html+="</table>";
 reviewTable.innerHTML=html;
 revSummary.innerHTML=`รวม ${items.length} รายการ | จำนวนรวม ${total}`;
-
 modal.style.display="flex";
 }
 
@@ -290,13 +306,11 @@ fd.append("entry.433160390",id);
 fd.append("entry.2142953662",machine.value);
 fd.append("entry.1674395658",issueDate.value);
 fd.append("entry.1740216135",JSON.stringify(items));
-
 fetch(FORM_URL,{method:"POST",mode:"no-cors",body:fd});
 alert("บันทึกเรียบร้อย\nเลขที่: "+id);
 location.reload();
 }
 
 </script>
-
 </body>
 </html>
