@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 10px;
+      background: #f5f6fa;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .kpi {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2f3640;
+    }
+
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="card">
+  <div>จำนวนรายการทั้งหมด</div>
+  <div class="kpi" id="totalItems">-</div>
+</div>
+
+<div class="card">
+  <div>เลือกเครื่องจักร</div>
+  <select id="machineSelect"></select>
+</div>
+
+<div class="card">
+  <canvas id="topChart"></canvas>
+</div>
+
+<script>
+  function loadData() {
+    google.script.run.withSuccessHandler(renderData).getDashboardData();
+  }
+
+  function renderData(data) {
+    document.getElementById("totalItems").innerText = data.totalQty;
+
+    const select = document.getElementById("machineSelect");
+    select.innerHTML = "";
+
+    data.machines.forEach(m => {
+      const option = document.createElement("option");
+      option.value = m;
+      option.text = m;
+      select.appendChild(option);
+    });
+
+    select.onchange = function() {
+      drawChart(data.topItems[this.value]);
+    };
+
+    drawChart(data.topItems[data.machines[0]]);
+  }
+
+  function drawChart(items) {
+    const ctx = document.getElementById('topChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: items.map(i => i.name),
+        datasets: [{
+          label: 'Qty',
+          data: items.map(i => i.qty)
+        }]
+      }
+    });
+  }
+
+  loadData();
+</script>
+
+</body>
+</html>
