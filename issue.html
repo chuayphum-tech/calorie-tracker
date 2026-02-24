@@ -311,11 +311,15 @@ alert("บันทึกเรียบร้อย\nเลขที่: "+id);
 location.reload();
 }
 // ===== Auto ใส่วันที่วันนี้ =====
-window.onload = function() {
+document.addEventListener("DOMContentLoaded", function () {
   const today = new Date().toISOString().split("T")[0];
-  document.getElementById("issueDate").value = today;
-};
+  const dateInput = document.getElementById("issueDate");
+  if(dateInput){
+    dateInput.value = today;
+  }
+});
 </script>
 </body>
 </html>
+
 
