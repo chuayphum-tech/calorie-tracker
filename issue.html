@@ -55,14 +55,12 @@ button:hover{opacity:.9;transform:translateY(-1px);}
 .add{background:#1976d2;color:#fff;}
 .confirm{background:#2e7d32;color:#fff;width:100%;}
 .delete{background:#e53935;color:#fff;padding:4px 8px;border-radius:6px;}
-
 .dashboard-btn{
   width:100%;
   margin-top:10px;
   background:linear-gradient(45deg,#1e3c72,#2a5298);
   color:#fff;
 }
-
 table{
   width:100%;
   border-collapse:collapse;
@@ -71,7 +69,6 @@ table{
 th{background:#263238;color:#fff;padding:8px;text-align:left;}
 td{padding:8px;border-bottom:1px solid #ddd;}
 .qty{text-align:right;font-weight:600;}
-
 .summary{
   margin-top:12px;
   padding:10px;
@@ -79,7 +76,6 @@ td{padding:8px;border-bottom:1px solid #ddd;}
   border-radius:8px;
   font-weight:600;
 }
-
 .modal{
   position:fixed;
   inset:0;
@@ -103,6 +99,27 @@ td{padding:8px;border-bottom:1px solid #ddd;}
   margin-bottom:14px;
 }
 .small{font-size:12px;color:#666;}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:#2e7d32;
+  color:#fff;
+  padding:14px 20px;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,.3);
+  font-weight:600;
+  opacity:0;
+  transform:translateY(-20px);
+  transition:all .4s ease;
+  z-index:9999;
+}
+.toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
 </style>
 </head>
 
@@ -154,17 +171,14 @@ td{padding:8px;border-bottom:1px solid #ddd;}
 
 <button class="confirm" onclick="openReview()">ตรวจสอบก่อนบันทึก</button>
 
-<!-- 🔥 ปุ่ม Dashboard แบบโปร -->
 <button class="dashboard-btn" onclick="openDashboard()">
 📊 Summary Dashboard
 </button>
 
 </div>
 
-<!-- MODAL -->
 <div class="modal" id="modal">
 <div class="modal-box">
-
 <div class="review-header">
 <div>
 <b>📋 สรุปใบเบิก</b><br>
@@ -176,15 +190,14 @@ td{padding:8px;border-bottom:1px solid #ddd;}
 <span class="small" id="revTime"></span>
 </div>
 </div>
-
 <div id="reviewTable"></div>
 <div class="summary" id="revSummary"></div>
-
 <button class="confirm" onclick="submit()">ยืนยัน</button>
 <button onclick="closeModal()">กลับ</button>
+</div>
+</div>
 
-</div>
-</div>
+<div id="toast" class="toast"></div>
 
 <script>
 
@@ -192,6 +205,16 @@ const DASHBOARD_URL="https://script.google.com/macros/s/AKfycbxPmFk6DcQFxR8C_-2h
 
 function openDashboard(){
   window.open(DASHBOARD_URL,"_blank");
+}
+
+/* ===== TOAST FUNCTION ===== */
+function showToast(message){
+  const toast=document.getElementById("toast");
+  toast.innerText=message;
+  toast.classList.add("show");
+  setTimeout(()=>{
+    toast.classList.remove("show");
+  },3000);
 }
 
 const SHEET_ID="1jVYjQcsO1SLd6PoocZpA-YXyJdXZk0Rt8nNrc33vtns";
@@ -203,26 +226,17 @@ let items=[];
 async function loadItems(){
 const query = encodeURIComponent("SELECT B,C,D WHERE E='Active'");
 const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${GID}`;
-
 try{
 const res = await fetch(url);
 const text = await res.text();
 const json = JSON.parse(text.substring(47).slice(0,-2));
 const rows = json.table.rows;
-
 item.innerHTML='<option value="">-- เลือก --</option>';
-
 rows.forEach(r=>{
 const code=r.c[0]?.v;
 const name=r.c[1]?.v;
 const unit=r.c[2]?.v;
-
-item.innerHTML+=`
-<option value="${name}"
-data-code="${code}"
-data-unit="${unit}">
-${code} - ${name}
-</option>`;
+item.innerHTML+=`<option value="${name}" data-code="${code}" data-unit="${unit}">${code} - ${name}</option>`;
 });
 }catch(e){
 item.innerHTML='<option value="">โหลดข้อมูลล้มเหลว</option>';
@@ -233,15 +247,12 @@ loadItems();
 function addItem(){
 const sel=item;
 const quantity=parseInt(qty.value);
-if(!sel.value||!quantity)return alert("ข้อมูลไม่ครบ");
-
+if(!sel.value||!quantity)return showToast("กรอกข้อมูลไม่ครบ");
 const code=sel.selectedOptions[0].dataset.code;
 const unit=sel.selectedOptions[0].dataset.unit;
-
 const exist=items.find(i=>i.code===code);
 if(exist){exist.qty+=quantity;}
 else{items.push({code,name:sel.value,unit,qty:quantity});}
-
 render();
 qty.value="";
 }
@@ -249,11 +260,9 @@ qty.value="";
 function render(){
 list.innerHTML="";
 let total=0;
-
 items.forEach((i,idx)=>{
 total+=i.qty;
-list.innerHTML+=`
-<tr>
+list.innerHTML+=`<tr>
 <td>${idx+1}</td>
 <td>${i.code}</td>
 <td>${i.name}</td>
@@ -267,9 +276,9 @@ liveSummary.innerHTML=`รวม ${items.length} รายการ | จำน�
 function remove(i){items.splice(i,1);render();}
 
 function openReview(){
-if(items.length===0)return alert("ไม่มีรายการ");
-if(!machine.value)return alert("เลือกเครื่องจักร");
-if(!issueDate.value)return alert("เลือกวันที่");
+if(items.length===0)return showToast("ไม่มีรายการ");
+if(!machine.value)return showToast("เลือกเครื่องจักร");
+if(!issueDate.value)return showToast("เลือกวันที่");
 
 const id="ISS-"+Date.now();
 revID.innerText=id;
@@ -279,18 +288,15 @@ revTime.innerText="บันทึกเมื่อ: "+new Date().toLocaleStrin
 
 let total=0;
 let html="<table><tr><th>#</th><th>Code</th><th>รายการ</th><th>Qty</th></tr>";
-
 items.forEach((i,idx)=>{
 total+=i.qty;
-html+=`
-<tr>
+html+=`<tr>
 <td>${idx+1}</td>
 <td>${i.code}</td>
 <td>${i.name}</td>
 <td class="qty">${i.qty} ${i.unit}</td>
 </tr>`;
 });
-
 html+="</table>";
 reviewTable.innerHTML=html;
 revSummary.innerHTML=`รวม ${items.length} รายการ | จำนวนรวม ${total}`;
@@ -307,10 +313,10 @@ fd.append("entry.2142953662",machine.value);
 fd.append("entry.1674395658",issueDate.value);
 fd.append("entry.1740216135",JSON.stringify(items));
 fetch(FORM_URL,{method:"POST",mode:"no-cors",body:fd});
-alert("บันทึกเรียบร้อย\nเลขที่: "+id);
-location.reload();
+showToast("บันทึกเรียบร้อย เลขที่: "+id);
+setTimeout(()=>location.reload(),1500);
 }
-// ===== Auto ใส่วันที่วันนี้ =====
+
 document.addEventListener("DOMContentLoaded", function () {
   const today = new Date().toISOString().split("T")[0];
   const dateInput = document.getElementById("issueDate");
@@ -319,7 +325,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 </script>
+
 </body>
 </html>
-
-
