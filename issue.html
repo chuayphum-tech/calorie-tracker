@@ -310,7 +310,12 @@ fetch(FORM_URL,{method:"POST",mode:"no-cors",body:fd});
 alert("บันทึกเรียบร้อย\nเลขที่: "+id);
 location.reload();
 }
-
+// ===== Auto ใส่วันที่วันนี้ =====
+window.onload = function() {
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("issueDate").value = today;
+};
 </script>
 </body>
 </html>
+
